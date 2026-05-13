@@ -20,16 +20,17 @@ from unittest.mock import MagicMock, patch, PropertyMock
 import pytest
 import requests
 
-
 # ===========================================================================
 # OllamaClient tests
 # ===========================================================================
+
 
 class TestOllamaClientComplete:
     """Tests for OllamaClient.complete()"""
 
     def setup_method(self):
         from apps.ai.clients.ollama_client import OllamaClient
+
         self.client = OllamaClient(
             base_url="http://localhost:11434",
             model="llama3",
@@ -39,7 +40,10 @@ class TestOllamaClientComplete:
     @patch("apps.ai.clients.ollama_client.requests.Session.post")
     def test_complete_returns_response_text(self, mock_post):
         mock_response = MagicMock()
-        mock_response.json.return_value = {"response": "Hola desde Glápagos!", "done": True}
+        mock_response.json.return_value = {
+            "response": "Hola desde Glápagos!",
+            "done": True,
+        }
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
 
@@ -54,6 +58,7 @@ class TestOllamaClientComplete:
     @patch("apps.ai.clients.ollama_client.requests.Session.post")
     def test_complete_raises_on_connection_error(self, mock_post):
         from apps.ai.clients.ollama_client import OllamaConnectionError
+
         mock_post.side_effect = requests.exceptions.ConnectionError("refused")
 
         with pytest.raises(OllamaConnectionError, match="ollama serve"):
@@ -75,6 +80,7 @@ class TestOllamaClientComplete:
     @patch("apps.ai.clients.ollama_client.requests.Session.post")
     def test_complete_raises_on_timeout(self, mock_post):
         from apps.ai.clients.ollama_client import OllamaClientError
+
         mock_post.side_effect = requests.exceptions.Timeout()
 
         with pytest.raises(OllamaClientError, match="timed out"):
@@ -86,6 +92,7 @@ class TestOllamaClientStream:
 
     def setup_method(self):
         from apps.ai.clients.ollama_client import OllamaClient
+
         self.client = OllamaClient(base_url="http://localhost:11434", model="llama3")
 
     @patch("apps.ai.clients.ollama_client.requests.Session.post")
@@ -109,6 +116,7 @@ class TestOllamaClientStream:
     @patch("apps.ai.clients.ollama_client.requests.Session.post")
     def test_stream_raises_on_connection_error(self, mock_post):
         from apps.ai.clients.ollama_client import OllamaConnectionError
+
         mock_post.side_effect = requests.exceptions.ConnectionError()
 
         with pytest.raises(OllamaConnectionError):
@@ -120,6 +128,7 @@ class TestOllamaClientHealthCheck:
 
     def setup_method(self):
         from apps.ai.clients.ollama_client import OllamaClient
+
         self.client = OllamaClient(base_url="http://localhost:11434", model="llama3")
 
     @patch("apps.ai.clients.ollama_client.requests.Session.get")
@@ -164,6 +173,7 @@ class TestOllamaClientHealthCheck:
 # Health endpoint tests (Django)
 # ===========================================================================
 
+
 class TestHealthEndpoint:
     """Tests for GET /health/"""
 
@@ -199,8 +209,9 @@ class TestHealthEndpoint:
         self, mock_celery, mock_redis, mock_db, client
     ):
         mock_db.return_value = {
-            "status": "error", "latency_ms": 5001.0,
-            "error": "could not connect to server"
+            "status": "error",
+            "latency_ms": 5001.0,
+            "error": "could not connect to server",
         }
         mock_redis.return_value = {"status": "ok", "latency_ms": 0.8, "error": None}
         mock_celery.return_value = {"status": "ok", "workers": 1, "error": None}
@@ -221,8 +232,9 @@ class TestHealthEndpoint:
         mock_db.return_value = {"status": "ok", "latency_ms": 1.0, "error": None}
         mock_redis.return_value = {"status": "ok", "latency_ms": 0.5, "error": None}
         mock_celery.return_value = {
-            "status": "error", "workers": 0,
-            "error": "No Celery workers responded to ping"
+            "status": "error",
+            "workers": 0,
+            "error": "No Celery workers responded to ping",
         }
 
         response = client.get("/health/")

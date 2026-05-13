@@ -2,6 +2,7 @@
 Glapagos Workspace Models
 api/api/workspaces/models/workspace.py
 """
+
 from __future__ import annotations
 import uuid
 from django.db import models
@@ -11,37 +12,37 @@ from api.users.enums import Country, Industry
 
 
 class OrganizationType(models.TextChoices):
-    COMPANY     = "company",     _("Company")
-    GOVERNMENT  = "government",  _("Government")
-    UNIVERSITY  = "university",  _("University")
-    NGO         = "ngo",         _("NGO / Non-profit")
-    RESEARCH    = "research",    _("Research Institute")
-    STARTUP     = "startup",     _("Startup")
+    COMPANY = "company", _("Company")
+    GOVERNMENT = "government", _("Government")
+    UNIVERSITY = "university", _("University")
+    NGO = "ngo", _("NGO / Non-profit")
+    RESEARCH = "research", _("Research Institute")
+    STARTUP = "startup", _("Startup")
     COOPERATIVE = "cooperative", _("Cooperative")
-    OTHER       = "other",       _("Other")
+    OTHER = "other", _("Other")
 
 
 class WorkspaceVisibility(models.TextChoices):
-    PRIVATE  = "private",  _("Private - invitation only")
+    PRIVATE = "private", _("Private - invitation only")
     INTERNAL = "internal", _("Internal - visible to org members")
-    PUBLIC   = "public",   _("Public - visible to all Glapagos users")
+    PUBLIC = "public", _("Public - visible to all Glapagos users")
 
 
 class MemberRole(models.TextChoices):
-    OWNER       = "owner",       _("Owner")
-    ADMIN       = "admin",       _("Admin")
+    OWNER = "owner", _("Owner")
+    ADMIN = "admin", _("Admin")
     CONTRIBUTOR = "contributor", _("Contributor")
-    VIEWER      = "viewer",      _("Viewer")
+    VIEWER = "viewer", _("Viewer")
 
 
 class ComplianceJurisdiction(models.TextChoices):
-    LGPD        = "lgpd",        _("Brazil - LGPD")
+    LGPD = "lgpd", _("Brazil - LGPD")
     MEXICO_PDPA = "mexico_pdpa", _("Mexico - Ley Federal de Proteccion de Datos")
-    COLOMBIA    = "colombia",    _("Colombia - Ley 1581")
-    ARGENTINA   = "argentina",   _("Argentina - PDPA")
-    GDPR        = "gdpr",        _("EU - GDPR")
-    CCPA        = "ccpa",        _("USA - CCPA")
-    NONE        = "none",        _("No specific jurisdiction")
+    COLOMBIA = "colombia", _("Colombia - Ley 1581")
+    ARGENTINA = "argentina", _("Argentina - PDPA")
+    GDPR = "gdpr", _("EU - GDPR")
+    CCPA = "ccpa", _("USA - CCPA")
+    NONE = "none", _("No specific jurisdiction")
 
 
 class Organization(BaseModel):
@@ -49,13 +50,23 @@ class Organization(BaseModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField(blank=True, default="")
-    org_type = models.CharField(max_length=20, choices=OrganizationType.choices, default=OrganizationType.COMPANY)
-    industry = models.CharField(max_length=255, choices=Industry.choices, null=True, blank=True)
-    country = models.CharField(max_length=255, choices=Country.choices, null=True, blank=True)
+    org_type = models.CharField(
+        max_length=20,
+        choices=OrganizationType.choices,
+        default=OrganizationType.COMPANY,
+    )
+    industry = models.CharField(
+        max_length=255, choices=Industry.choices, null=True, blank=True
+    )
+    country = models.CharField(
+        max_length=255, choices=Country.choices, null=True, blank=True
+    )
     website = models.URLField(blank=True, default="")
     logo_url = models.URLField(blank=True, default="")
     is_verified = models.BooleanField(default=False)
-    owner = models.ForeignKey("users.User", on_delete=models.PROTECT, related_name="owned_organizations")
+    owner = models.ForeignKey(
+        "users.User", on_delete=models.PROTECT, related_name="owned_organizations"
+    )
 
     class Meta:
         verbose_name = _("Organization")
@@ -74,15 +85,27 @@ class Organization(BaseModel):
 
 class Workspace(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="workspaces")
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="workspaces"
+    )
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=100)
     description = models.TextField(blank=True, default="")
-    visibility = models.CharField(max_length=20, choices=WorkspaceVisibility.choices, default=WorkspaceVisibility.PRIVATE)
-    jurisdiction = models.CharField(max_length=20, choices=ComplianceJurisdiction.choices, default=ComplianceJurisdiction.NONE)
+    visibility = models.CharField(
+        max_length=20,
+        choices=WorkspaceVisibility.choices,
+        default=WorkspaceVisibility.PRIVATE,
+    )
+    jurisdiction = models.CharField(
+        max_length=20,
+        choices=ComplianceJurisdiction.choices,
+        default=ComplianceJurisdiction.NONE,
+    )
     ai_provider = models.CharField(max_length=50, blank=True, default="")
     ai_model = models.CharField(max_length=100, blank=True, default="")
-    created_by = models.ForeignKey("users.User", on_delete=models.PROTECT, related_name="created_workspaces")
+    created_by = models.ForeignKey(
+        "users.User", on_delete=models.PROTECT, related_name="created_workspaces"
+    )
 
     class Meta:
         verbose_name = _("Workspace")
@@ -115,11 +138,23 @@ class Workspace(BaseModel):
 
 class WorkspaceMembership(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="memberships")
-    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="workspace_memberships")
-    role = models.CharField(max_length=20, choices=MemberRole.choices, default=MemberRole.VIEWER)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.CASCADE, related_name="memberships"
+    )
+    user = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, related_name="workspace_memberships"
+    )
+    role = models.CharField(
+        max_length=20, choices=MemberRole.choices, default=MemberRole.VIEWER
+    )
     is_active = models.BooleanField(default=True)
-    invited_by = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_invitations")
+    invited_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_invitations",
+    )
     invitation_accepted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

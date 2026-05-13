@@ -1,4 +1,5 @@
 """Workspaces admin"""
+
 from django.contrib import admin
 from api.workspaces.models import Organization, Workspace, WorkspaceMembership
 
@@ -28,7 +29,14 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(Workspace)
 class WorkspaceAdmin(admin.ModelAdmin):
-    list_display = ["name", "organization", "visibility", "jurisdiction", "ai_provider", "created"]
+    list_display = [
+        "name",
+        "organization",
+        "visibility",
+        "jurisdiction",
+        "ai_provider",
+        "created",
+    ]
     list_filter = ["visibility", "jurisdiction", "ai_provider", "deleted"]
     search_fields = ["name", "slug", "organization__name"]
     inlines = [WorkspaceMembershipInline]
