@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 # Configuration (resolved from environment at import time)
 # ---------------------------------------------------------------------------
 
-OLLAMA_BASE_URL: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
+OLLAMA_BASE_URL: str = os.environ.get(
+    "OLLAMA_BASE_URL", "http://localhost:11434"
+).rstrip("/")
 OLLAMA_MODEL: str = os.environ.get("OLLAMA_MODEL", "llama3")
 OLLAMA_TIMEOUT: int = int(os.environ.get("OLLAMA_TIMEOUT", "120"))
 
@@ -37,6 +39,7 @@ OLLAMA_TIMEOUT: int = int(os.environ.get("OLLAMA_TIMEOUT", "120"))
 # ---------------------------------------------------------------------------
 # Exceptions
 # ---------------------------------------------------------------------------
+
 
 class OllamaClientError(Exception):
     """Base exception for OllamaClient errors."""
@@ -53,6 +56,7 @@ class OllamaModelError(OllamaClientError):
 # ---------------------------------------------------------------------------
 # Client
 # ---------------------------------------------------------------------------
+
 
 class OllamaClient:
     """
@@ -181,14 +185,15 @@ class OllamaClient:
             resp = self._session.get(f"{self.base_url}/api/tags", timeout=10)
             resp.raise_for_status()
             models = [m["name"] for m in resp.json().get("models", [])]
-            model_available = any(
-                self.model in name for name in models
-            )
+            model_available = any(self.model in name for name in models)
             result.update(
                 status="ok",
                 model_available=model_available,
-                error=None if model_available
-                      else f"Model '{self.model}' not pulled. Run: ollama pull {self.model}",
+                error=(
+                    None
+                    if model_available
+                    else f"Model '{self.model}' not pulled. Run: ollama pull {self.model}"
+                ),
             )
         except ConnectionError:
             result["error"] = (
@@ -226,6 +231,7 @@ class OllamaClient:
 # ---------------------------------------------------------------------------
 # Provider factory — used by the Glápagos AI provider registry
 # ---------------------------------------------------------------------------
+
 
 def get_client(**kwargs: Any) -> OllamaClient:
     """

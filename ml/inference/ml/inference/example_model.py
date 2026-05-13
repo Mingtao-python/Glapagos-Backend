@@ -3,6 +3,7 @@ Example ML Model for Glápagos Backend
 This is a template showing how to structure inference functions.
 """
 
+
 class ExampleModel:
     def __init__(self):
         # Initialize model parameters or load a pre-trained model

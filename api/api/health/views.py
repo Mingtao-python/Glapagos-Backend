@@ -47,6 +47,7 @@ HEALTH_REDIS_TIMEOUT = float(os.environ.get("HEALTH_REDIS_TIMEOUT", "2.0"))
 # Individual service checks
 # ---------------------------------------------------------------------------
 
+
 def _check_database() -> dict[str, Any]:
     start = time.perf_counter()
     try:
@@ -73,12 +74,14 @@ def _check_redis() -> dict[str, Any]:
         # Prefer django-redis cache if configured, fall back to raw redis-py
         try:
             from django.core.cache import cache
+
             cache.set("_glapagos_health", "ok", timeout=5)
             val = cache.get("_glapagos_health")
             if val != "ok":
                 raise ValueError("Redis round-trip value mismatch")
         except Exception:
             import redis as _redis  # type: ignore[import]
+
             redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
             client = _redis.from_url(redis_url, socket_timeout=HEALTH_REDIS_TIMEOUT)
             client.ping()
@@ -94,6 +97,7 @@ def _check_redis() -> dict[str, Any]:
 def _check_celery() -> dict[str, Any]:
     try:
         from celery import current_app  # type: ignore[import]
+
         inspector = current_app.control.inspect(timeout=HEALTH_CELERY_TIMEOUT)
         ping_response = inspector.ping() or {}
         worker_count = len(ping_response)
@@ -112,6 +116,7 @@ def _check_celery() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # View
 # ---------------------------------------------------------------------------
+
 
 class HealthCheckView(View):
     """
