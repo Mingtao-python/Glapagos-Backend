@@ -29,8 +29,7 @@ class AIProvider(Protocol):
     ChatAssistant calls complete() — providers handle the rest.
     """
 
-    def complete(self, prompt: str, **kwargs) -> str:
-        ...
+    def complete(self, prompt: str, **kwargs) -> str: ...
 
 
 class OpenAIProvider:
@@ -42,6 +41,7 @@ class OpenAIProvider:
     def __init__(self):
         import openai
         from django.conf import settings
+
         self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
 
     def complete(self, prompt: str, system: str = "", **kwargs) -> str:
@@ -65,6 +65,7 @@ class OllamaProvider:
 
     def __init__(self):
         from api.ai.clients.ollama_client import OllamaClient
+
         self.client = OllamaClient()
 
     def complete(self, prompt: str, system: str = "", **kwargs) -> str:
@@ -85,7 +86,5 @@ def get_provider() -> AIProvider:
     elif provider == "openai":
         return OpenAIProvider()
     else:
-        logger.warning(
-            "Unknown AI_PROVIDER=%r, falling back to OpenAI", provider
-        )
+        logger.warning("Unknown AI_PROVIDER=%r, falling back to OpenAI", provider)
         return OpenAIProvider()

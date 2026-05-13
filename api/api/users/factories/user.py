@@ -26,7 +26,6 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     username = factory.LazyAttribute(lambda p: p.email)
 
-
     role = factory.LazyAttribute(
         lambda _: random.choice(list(UserRoles._value2member_map_.values()))
     )

@@ -14,23 +14,24 @@ class ChatAssistant:
     @staticmethod
     def chat(msg: str, context: str):
         system_prompt = (
-            'You are a BigQuery SQL expert specializing in creating queries.'
+            "You are a BigQuery SQL expert specializing in creating queries."
             ' Respond ONLY with valid JSON: {"explanation": "...", "query": "..."}'
-            ' Refuse anything unrelated to queries.'
+            " Refuse anything unrelated to queries."
         )
         provider = get_provider()
-        raw = provider.complete(msg, system=system_prompt + '\n\nContext: ' + context)
+        raw = provider.complete(msg, system=system_prompt + "\n\nContext: " + context)
         try:
             cleaned = raw.strip()
-            if cleaned.startswith('```'):
-                cleaned = cleaned.split('\n', 1)[-1]
-            if cleaned.endswith('```'):
-                cleaned = cleaned.rsplit('```', 1)[0]
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("\n", 1)[-1]
+            if cleaned.endswith("```"):
+                cleaned = cleaned.rsplit("```", 1)[0]
             import json as _json
+
             data = _json.loads(cleaned.strip())
             res = QueryResponse(**data)
         except Exception:
-            raise UnrelatedTopicException(error=_('Error processing the request'))
+            raise UnrelatedTopicException(error=_("Error processing the request"))
         if res.query:
             return res
-        raise UnrelatedTopicException(error=_('Error processing the request'))
+        raise UnrelatedTopicException(error=_("Error processing the request"))
