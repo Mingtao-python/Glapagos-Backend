@@ -1,9 +1,8 @@
-import openai
-
+import json
 from pydantic import BaseModel
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 from .exceptions import UnrelatedTopicException
+from .providers import get_provider
 
 
 class QueryResponse(BaseModel):
@@ -14,42 +13,24 @@ class QueryResponse(BaseModel):
 class ChatAssistant:
     @staticmethod
     def chat(msg: str, context: str):
-
-        prompt = """
-            You are a BigQuery SQL expert specializing in creating queries. 
-            You will receive a request and must respond with the appropriate 
-            query based on the information provided.
-            
-            Make sure to:
-            1. Use backticks (`) around all field and table names to ensure compatibility with 
-            special characters or accents.
-            2. Enclose string values in single quotes ('') or double quotes ("").
-            3. You must try to answer with a query.
-
-            Anything that is not related to making a queries you must refuse 
-            the request"
-        """
-
-        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        completion = client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt},
-                {
-                    "role": "system",
-                    "content": f"this is the context information that you have: {context}",
-                },
-                {
-                    "role": "user",
-                    "content": msg,
-                },
-            ],
-            response_format=QueryResponse,
+        system_prompt = (
+            'You are a BigQuery SQL expert specializing in creating queries.'
+            ' Respond ONLY with valid JSON: {"explanation": "...", "query": "..."}'
+            ' Refuse anything unrelated to queries.'
         )
-
-        res = completion.choices[0].message.parsed
-
-        if res.__dict__.get("query", "") != "":
+        provider = get_provider()
+        raw = provider.complete(msg, system=system_prompt + '\n\nContext: ' + context)
+        try:
+            cleaned = raw.strip()
+            if cleaned.startswith('```'):
+                cleaned = cleaned.split('\n', 1)[-1]
+            if cleaned.endswith('```'):
+                cleaned = cleaned.rsplit('```', 1)[0]
+            import json as _json
+            data = _json.loads(cleaned.strip())
+            res = QueryResponse(**data)
+        except Exception:
+            raise UnrelatedTopicException(error=_('Error processing the request'))
+        if res.query:
             return res
-
-        raise UnrelatedTopicException(error=_("Error processing the request"))
+        raise UnrelatedTopicException(error=_('Error processing the request'))
